@@ -1,0 +1,136 @@
+const express = require("express");
+const Cart = require("../models/cart.schema");
+const Card = require("../models/foodCard.schema");
+const userAuth = require("../middlewares/userAuth");
+const mongoose = require("mongoose");
+
+const cartRouter = express.Router();
+
+cartRouter.post("/cart", userAuth, async (req, res) => {
+  try {
+    const user = req.user;
+    const userId = user._id;
+
+    const { cardId } = req.body;
+    if (!cardId) {
+      return res.status(400).json({ message: "Missing required field" });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(cardId)) {
+        return res.status(400).json({ message: "Invalid cardId format" });
+      }
+
+    const card = await Card.findById(cardId);
+    if (!card) {
+      return res.status(404).json({ message: "card not found" });
+    }
+
+    const price = card.cost;
+
+    let cart = await Cart.findOne({ userId });
+    if (!cart) {
+      cart = new Cart({
+        userId,
+        items: [
+          {
+            cardId,
+            quantity: 1,
+            price,
+          },
+        ],
+      });
+    } else {
+      const cartIndex =  cart.items.findIndex(
+        (item) => item.cardId.toString() === cardId
+      );
+
+      if (cartIndex >= 0) {
+        cart.items[cartIndex].quantity += 1;
+        cart.items[cartIndex].price = price*cart.items[cartIndex].quantity
+      } else {
+        cart.items.push({ cardId, quantity:1, price });
+      }
+    }
+
+    await cart.save();
+
+    return res.status(201).json({ message: "Item added to cart", cart });
+  } catch (error) {
+    return res.status(400).json({ message: error.message, status: "400" });
+  }
+});
+
+cartRouter.get("/cart", userAuth, async (req, res) => {
+    try {
+      const user = req.user;
+      const userId = user._id;
+  
+      
+      const cart = await Cart.findOne({ userId }).populate("items.cardId")
+  
+      if (!cart || cart.items.length === 0) {
+        return res.status(200).json({
+          message: "Cart is empty",
+          cart: [],
+          totalPrice: 0, 
+        });
+      }
+      let totalPrice = 0;
+      cart.items.forEach((item) => {
+        totalPrice += item.price;  
+      });
+  
+      return res.status(200).json({
+        message: "Cart fetched successfully",
+        cart: cart.items,
+        totalPrice,  
+      });
+    } catch (error) {
+      return res.status(500).json({ message: "Error fetching cart", error: error.message });
+    }
+  });
+
+  cartRouter.delete("/cart/:cardId", userAuth, async (req, res) => {
+    try {
+      const user = req.user;
+      const userId = user._id;
+      const { cardId } = req.params;
+  
+      if (!cardId) {
+        return res.status(400).json({ message: "Card ID is required" });
+      }
+  
+      let cart = await Cart.findOne({ userId });
+      if (!cart || cart.items.length === 0) {
+        return res.status(404).json({ message: "Cart is empty or not found" });
+      }
+  
+      const cartIndex = cart.items.findIndex(
+        (item) => item.cardId.toString() === cardId
+      );
+  
+      if (cartIndex === -1) {
+        return res.status(404).json({ message: "Item not found in cart" });
+      }
+  
+      if (cart.items[cartIndex].quantity > 1) {
+        cart.items[cartIndex].quantity -= 1;
+        cart.items[cartIndex].price -= cart.items[cartIndex].price / (cart.items[cartIndex].quantity + 1); 
+      } else {
+        cart.items.splice(cartIndex, 1);
+      }
+  
+      await cart.save();
+  
+      return res.status(200).json({
+        message: "Item updated in the cart",
+        cart,
+      });
+    } catch (error) {
+      return res.status(500).json({ message: "Error deleting item", error: error.message });
+    }
+  });
+  
+  
+
+module.exports = cartRouter;

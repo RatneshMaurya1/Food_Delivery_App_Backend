@@ -5,6 +5,8 @@ const userRouter = require("./router/userRouter")
 const imageRouter = require("./router/imageRouter")
 const cors = require("cors")
 const cardRouter = require("./router/foodCardRouter")
+const reviewRouter = require("./router/reviewRouter")
+const cartRouter = require("./router/cartRouter")
 const app = express()
 const corsOptions = {
     origin:[
@@ -22,6 +24,8 @@ app.use(express.urlencoded({extended:true}))
 app.use("/api/", userRouter)
 app.use("/api/", imageRouter)
 app.use("/api/", cardRouter)
+app.use("/api/", reviewRouter)
+app.use("/api/",cartRouter)
 
 connectDb()
 .then(() => {

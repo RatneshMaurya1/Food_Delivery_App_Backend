@@ -14,6 +14,9 @@ const cardSchema = new mongoose.Schema({
     price:{
         type:String
     },
+    cost:{
+        type:Number
+    },
     mainImage:{
         type:String
     },
