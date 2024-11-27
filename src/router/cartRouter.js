@@ -1,8 +1,10 @@
 const express = require("express");
+require("dotenv").config()
 const Cart = require("../models/cart.schema");
 const Card = require("../models/foodCard.schema");
 const userAuth = require("../middlewares/userAuth");
 const mongoose = require("mongoose");
+const FRONTEND_URL = process.env.FRONTEND_URL
 
 const cartRouter = express.Router();
 
@@ -82,6 +84,7 @@ cartRouter.get("/cart", userAuth, async (req, res) => {
   
       return res.status(200).json({
         message: "Cart fetched successfully",
+        cartId: cart._id,
         cart: cart.items,
         totalPrice,  
       });
@@ -130,6 +133,56 @@ cartRouter.get("/cart", userAuth, async (req, res) => {
       return res.status(500).json({ message: "Error deleting item", error: error.message });
     }
   });
+
+
+  
+  cartRouter.get("/cart/:cartId", async (req, res) => {
+    try {
+      const { cartId } = req.params;
+  
+      if (!mongoose.Types.ObjectId.isValid(cartId)) {
+        return res.status(400).json({ message: "Invalid Cart ID" });
+      }
+  
+      const cart = await Cart.findById(cartId).populate("items.cardId");
+      if (!cart) {
+        return res.status(404).json({ message: "Cart not found" });
+      }
+  
+      let totalPrice = 0;
+      cart.items.forEach((item) => {
+        totalPrice += item.price;
+      });
+  
+      return res.status(200).json({
+        message: "Cart fetched successfully",
+        cartId: cart._id,
+        cart: cart.items, 
+        totalPrice,
+      });
+    } catch (error) {
+      return res.status(500).json({ message: "Error fetching cart", error: error.message });
+    }
+  });
+
+
+  cartRouter.post("/cart/share", userAuth, async (req, res) => {
+    try {
+        const userId = req.user._id;
+        const cart = await Cart.findOne({ userId });
+
+        if (!cart) {
+            return res.status(404).json({ message: "Cart not found" });
+        }
+
+        const shareableLink = `${FRONTEND_URL}/checkout/${cart._id}`; 
+
+        return res.status(200).json({ message: "link generated", shareableLink });
+    } catch (error) {
+        return res.status(500).json({ message: "Error generating link", error: error.message });
+    }
+});
+
   
   
 
