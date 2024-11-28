@@ -101,9 +101,9 @@ userRouter.post("/signup", async (req, res) => {
       console.error("Signin error:", error);
       return res.status(500).json({ message: "Internal Server Error", status: "500" });
     }
-  });
+  });  
 
-  userRouter.post("/profile",userAuth, async (req,res) => {
+  userRouter.get("/profile",userAuth, async (req,res) => {
     try{
        const user = req.user
    
