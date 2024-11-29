@@ -99,4 +99,20 @@ addressRouter.delete("/address/:addressId", userAuth, async (req, res) => {
   }
 });
 
+addressRouter.get("/address/:addressId", userAuth, async (req, res) => {
+  try {
+    const user = req.user;
+    const userAddress = await Address.find({_id:req.params.addressId, userId: user._id });
+    if (!userAddress) {
+      return res.status(404).json({ message: "Address not found" });
+    }
+    return res.status(200).json({ message: "Address selected successfully", userAddress });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ message: "failed to get address", error: error.message });
+  }
+});
+
+
 module.exports = addressRouter;

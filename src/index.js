@@ -9,6 +9,7 @@ const reviewRouter = require("./router/reviewRouter")
 const cartRouter = require("./router/cartRouter")
 const checkoutRouter = require("./router/checkoutRouter")
 const addressRouter = require("./router/addressRouter")
+const debitCardRouter = require("./router/debitCardRouter")
 const app = express()
 const corsOptions = {
     origin:[
@@ -30,6 +31,7 @@ app.use("/api/", reviewRouter)
 app.use("/api/",cartRouter)
 app.use("/api/",checkoutRouter)
 app.use("/api/", addressRouter)
+app.use("/api/", debitCardRouter)
 
 connectDb()
 .then(() => {
