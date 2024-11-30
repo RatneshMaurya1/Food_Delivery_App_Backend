@@ -24,15 +24,22 @@ const userSchema = new mongoose.Schema({
         required: true,
         trim:true
     },
-    addresses: [
-        {
-          state: String,
-          city: String,
-          pinCode: Number,
-          phoneNumber: Number,
-          fullAddress: String,
-        },
-      ],
+   
+    fullName:{
+        type: String,
+        trim:true
+    },
+    gender:{
+        type: String,
+        trim:true
+    },
+    
+    country:{
+        type: String,
+        trim:true
+    },
+
+   
 },{
     timestamps: true
 })

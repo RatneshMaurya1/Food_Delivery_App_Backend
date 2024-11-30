@@ -68,6 +68,19 @@ debitCardRouter.put("/debitCard/:userCardId", userAuth, async (req, res) => {
         .json({ message: "At least one field is required to update." });
     }
 
+    if (cardNumber && cardNumber.length !== 16 || isNaN(cardNumber)) {
+      return res.status(400).json({ message: "Invalid card number" });
+    }
+    const expireRegex = /^(0[1-9]|1[0-2])\/\d{2}$/;
+    if (expire && !expireRegex.test(expire)) {
+      return res.status(400).json({ message: "Invalid expiration date format (MM/YY)" });
+    }
+
+    if (cvc && cvc.length !== 3 || isNaN(cvc)) {
+      return res.status(400).json({ message: "Invalid CVC" });
+    }
+
+
     const updatedDabitCard = await DebitCard.findOne({
       _id: req.params.userCardId,
       userId: user._id,
