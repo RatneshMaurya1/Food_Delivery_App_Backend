@@ -201,7 +201,7 @@ cartRouter.delete("/cart/clear/:cartId", userAuth, async (req, res) => {
     const cart = await Cart.findById(cartId);
 
     if (!cart) {
-      return res.status(404).json({ message: "Cart not found" });
+      return res.status(404).json({ message: "You cannot proceed to payment because your cart is empty." });
     }
 
     if (cart.userId.toString() !== userId.toString()) {
@@ -216,7 +216,7 @@ cartRouter.delete("/cart/clear/:cartId", userAuth, async (req, res) => {
     await Cart.deleteOne({ _id: cartId });
 
     return res.status(200).json({
-      message: "Cart cleared successfully",
+      message: "Order placed successfully",
       cart,
     });
   } catch (error) {
